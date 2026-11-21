@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mixes — DJ Carlos</title><meta name="description" content="DJ Carlos — bringing the beat to Mexico City & beyond. Listen to mixes and book for clubs, weddings and corporate events.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g'%3E%3Cstop offset='0' stop-color='%238B5CF6'/%3E%3Cstop offset='1' stop-color='%23EC4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Ctext x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='900' font-size='30' fill='%23fff'%3EC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Outfit:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css"></head><body>
+<div class="loader"><div class="neon">DJ CARLOS</div><div class="lb"><i></i></div></div>
+<nav class="nav"><a class="logo" href="./index.html">DJ CARLOS</a><ul>
+<li><a href="./index.html">Home</a></li><li><a href="./mixes.html" class="active" aria-current="page">Mixes</a></li><li><a href="./booking.html">Book</a></li></ul></nav>
+
+<section><h2 class="reveal">Latest <span>Mixes</span></h2><p class="sub reveal">Press play and keep browsing — the mini player follows you.</p>
+<div class="player reveal" id="player">
+  <div class="now"><div class="cover" id="cover">C</div><div><div class="lbl">Now playing</div><h3 id="title">Midnight in Roma</h3><div class="meta" id="meta">House · 124 BPM</div></div></div>
+  <canvas id="viz" width="900" height="80" aria-hidden="true"></canvas>
+  <div class="progress" id="prog" role="slider" aria-label="Seek"><div class="fill" id="fill"></div></div>
+  <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+  <div class="controls">
+    <button class="ctl" id="prev" aria-label="Previous track">⏮</button>
+    <button class="ctl play" id="play" aria-label="Play">▶</button>
+    <button class="ctl" id="next" aria-label="Next track">⏭</button>
+    <div class="vol">🔊<input type="range" id="vol" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"></div>
+  </div>
+  <ul class="list" id="list"></ul>
+</div>
+<p class="note" style="text-align:center;margin-top:16px">Demo tracks are original loops made for this portfolio — Carlos's real mixes drop in later.</p>
+</section>
+<div class="mini" id="mini"><button class="ctl" id="mplay" aria-label="Play/pause">▶</button><span class="t" id="mtitle">—</span><div class="bar"><i id="mfill"></i></div></div>
+<div class="tapover" id="tap"><div class="neon" style="font-size:2.2rem">TAP TO PLAY</div><p class="sub">Mobile browsers need one tap to start audio.</p><button class="btn" id="tapbtn">▶ Tap to begin</button></div>
+<footer><div class="soc"><a href="https://soundcloud.com" target="_blank" rel="noopener" aria-label="SoundCloud">SC</a><a href="https://spotify.com" target="_blank" rel="noopener" aria-label="Spotify">SP</a><a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">IG</a><a href="https://youtube.com" target="_blank" rel="noopener" aria-label="YouTube">YT</a></div>
+<a href="mailto:bookings@djcarlos.mx">bookings@djcarlos.mx</a><span>© 2026 DJ Carlos · Mexico City</span></footer>
+<script src="./common.js"></script><script>
+const TRACKS=[{t:'Midnight in Roma',m:'House · 124 BPM',f:'./audio/midnight-in-roma.mp3'},{t:'Neon Pulse',m:'Techno · 128 BPM',f:'./audio/neon-pulse.mp3'},{t:'Tacos & Bass',m:'House · 120 BPM',f:'./audio/tacos-and-bass.mp3'},{t:'Deep in Condesa',m:'Deep House · 118 BPM',f:'./audio/deep-in-condesa.mp3'},{t:'Sunrise at Tulum',m:'Melodic House · 122 BPM',f:'./audio/sunrise-at-tulum.mp3'}];
+const $=id=>document.getElementById(id);let idx=0,ctx,an,gains=[],decks=[new Audio(),new Audio()],cur=0;decks.forEach(a=>{a.preload='metadata';a.crossOrigin='anonymous';});
+const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
+$('list').innerHTML=TRACKS.map((x,i)=>`<li data-i="${i}"><span class="n">${String(i+1).padStart(2,'0')}</span><span class="tt">${x.t}</span><span class="du" id="d${i}">–:––</span></li>`).join('');
+TRACKS.forEach((x,i)=>{const a=new Audio();a.preload='metadata';a.src=x.f;a.onloadedmetadata=()=>$('d'+i).textContent=fmt(a.duration);});
+function setupAudio(){if(ctx)return;ctx=new (window.AudioContext||window.webkitAudioContext)();an=ctx.createAnalyser();an.fftSize=128;
+ decks.forEach(a=>{const s=ctx.createMediaElementSource(a),g=ctx.createGain();s.connect(g);g.connect(an);gains.push(g);});an.connect(ctx.destination);draw();}
+const A=()=>decks[cur];
+function ui(){const x=TRACKS[idx];$('title').textContent=x.t;$('meta').textContent=x.m;$('mtitle').textContent=x.t+' — DJ Carlos';document.querySelectorAll('#list li').forEach((li,i)=>li.classList.toggle('on',i===idx));}
+function load(i,autoplay){idx=(i+TRACKS.length)%TRACKS.length;ui();const old=A(),nx=decks[1-cur];nx.src=TRACKS[idx].f;nx.currentTime=0;nx.volume=+$('vol').value;
+ if(autoplay&&ctx&&!old.paused){const t=ctx.currentTime;gains[1-cur].gain.setValueAtTime(0,t);gains[1-cur].gain.linearRampToValueAtTime(1,t+.5);gains[cur].gain.setValueAtTime(1,t);gains[cur].gain.linearRampToValueAtTime(0,t+.5);setTimeout(()=>{old.pause();},550);}
+ else{old.pause();if(gains.length){gains[1-cur].gain.value=1;}}
+ cur=1-cur;bind();if(autoplay)play();}
+function bind(){const a=A();a.ontimeupdate=()=>{const p=a.duration?a.currentTime/a.duration*100:0;$('fill').style.width=p+'%';$('mfill').style.width=p+'%';$('cur').textContent=fmt(a.currentTime);$('dur').textContent=fmt(a.duration);};a.onended=()=>load(idx+1,true);a.onloadedmetadata=()=>$('dur').textContent=fmt(a.duration);}
+function play(){setupAudio();ctx.resume();A().play().then(()=>{state(true);}).catch(()=>$('tap').classList.add('show'));}
+function pause(){A().pause();state(false);}
+function state(p){$('play').textContent=p?'⏸':'▶';$('mplay').textContent=p?'⏸':'▶';$('cover').classList.toggle('spin',p);$('play').setAttribute('aria-label',p?'Pause':'Play');}
+$('play').onclick=()=>A().paused?play():pause();$('mplay').onclick=e=>{e.stopPropagation();A().paused?play():pause();};
+$('next').onclick=()=>load(idx+1,!A().paused);$('prev').onclick=()=>{if(A().currentTime>3){A().currentTime=0;}else load(idx-1,!A().paused);};
+$('list').onclick=e=>{const li=e.target.closest('li');if(li)load(+li.dataset.i,true);};
+$('vol').oninput=e=>decks.forEach(a=>a.volume=+e.target.value);
+$('prog').onclick=e=>{const r=e.currentTarget.getBoundingClientRect(),a=A();if(a.duration)a.currentTime=(e.clientX-r.left)/r.width*a.duration;};
+$('tapbtn').onclick=()=>{$('tap').classList.remove('show');play();};
+$('mini').onclick=()=>$('player').scrollIntoView({behavior:'smooth'});
+new IntersectionObserver(es=>es.forEach(e=>$('mini').classList.toggle('show',!e.isIntersecting&&(!A().paused||A().currentTime>0)))).observe($('player'));
+function draw(){const c=$('viz'),g=c.getContext('2d'),d=new Uint8Array(an.frequencyBinCount);const grad=g.createLinearGradient(0,0,c.width,0);grad.addColorStop(0,'#8B5CF6');grad.addColorStop(1,'#EC4899');
+ (function loop(){requestAnimationFrame(loop);an.getByteFrequencyData(d);g.clearRect(0,0,c.width,c.height);const n=48,w=c.width/n;for(let i=0;i<n;i++){const v=d[i]/255,h=Math.max(3,v*c.height);g.fillStyle=grad;g.fillRect(i*w+2,(c.height-h)/2,w-4,h);}})();}
+decks[0].src=TRACKS[0].f;bind();ui();
+(function idle(){const c=$('viz'),g=c.getContext('2d');for(let i=0;i<48;i++){g.fillStyle='rgba(139,92,246,.35)';const h=4+Math.abs(Math.sin(i*.6))*14;g.fillRect(i*(c.width/48)+2,(c.height-h)/2,c.width/48-4,h);}})();
+</script></body></html>
